@@ -53,7 +53,7 @@ function deg2rad(deg: number) {
 const PLACE_TYPES = ['park', 'tourist_attraction', 'cafe'] as const;
 
 /**
- * Returns the first nearby place of the given types, or null.
+ * Returns a random nearby place from top results, or null.
  */
 async function findNearbyPlace(
   apiKey: string,
@@ -66,7 +66,9 @@ async function findNearbyPlace(
     const placesResponse = await fetch(placesUrl);
     const placesData = await placesResponse.json();
     if (placesData.status === 'OK' && placesData.results.length > 0) {
-      return placesData.results[0];
+      const candidates = placesData.results.slice(0, Math.min(8, placesData.results.length));
+      const randomIndex = Math.floor(Math.random() * candidates.length);
+      return candidates[randomIndex];
     }
   }
   return null;
@@ -133,8 +135,8 @@ export async function GET(request: Request) {
 
     // 출발지·도착지 주변 장소 (경로 중간뿐 아니라 양 끝 근처도 경유 후보에 포함)
     const [placeNearStart, placeNearEnd] = await Promise.all([
-      findNearbyPlace(apiKey, oLat, oLng, 1200),
-      findNearbyPlace(apiKey, dLat, dLng, 1200),
+      findNearbyPlace(apiKey, oLat, oLng, 5000),
+      findNearbyPlace(apiKey, dLat, dLng, 5000),
     ]);
 
     // Extract intermediate points from the path (경로상 구간)
